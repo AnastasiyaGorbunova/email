@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit to Google Sheets</title>
+</head>
+<body>
+    <h1>Выбор билета</h1>
+    <form id="submitForm">
+        <input type="text" name="name" placeholder="Your Name" required>
+        <input type="email" name="email" placeholder="Your Email" required>
+        <input type="tel" name="numberTelephone" placeholder="Your Number telephone" required>
+        <select id="typeTicket">
+            <option value="firstType" selected>1000 ₽</option>
+            <option value="secondType">1500 ₽</option>
+            <option value="thirdType">2000 ₽</option>
+            <option value="fourthType">2500 ₽</option>
+            <option value="fifthType">3000 ₽</option>
+        </select>
+        <button type="submit">Send</button>
+    </form>
+
+    <script>
+        async function sendEmail(body) {
+            return fetch ('http://localhost:3000/mail',  
+                        {method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(body)
+                    });
+        }
+        //npm i express dotenv bode-parser nodemailer --save && npm i nodemon --save-dev
+        document.getElementById('submitForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            const selectTypeTicket = document.getElementById("typeTicket");
+            const textTypeTicket = selectTypeTicket.options[selectTypeTicket.selectedIndex].text;
+            formData.append('typeTicket', textTypeTicket);
+            
+
+            //ссылка на таблицу: https://docs.google.com/spreadsheets/d/1JNKkAQwSg7EaGx1BcrFX3uJSnw4iIfFU7rz6GWjZBZs/edit?usp=sharing
+            fetch('https://script.google.com/macros/s/AKfycbwA2cBNG6Mh5GuGNZaEany_XqrBKkyzSgvbNOEMTx0K9MFgjZVzKoQWUbGZePRo3Z2tyw/exec', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert('Data sent successfully!');
+                    console.log(data);
+                    if (data) {
+                        return sendEmail(data.data);
+                    }
+                })
+                .then(response => response.json())
+                .then(data => console.log(data)) //должны получить email
+                .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
